@@ -1,6 +1,18 @@
 import React, { useState } from "react";
 import "./RecipeHubContainer.css";
 
+/**
+ * Google OAuth
+ * To use Google Sign-In, install the library:
+ *   npm install @react-oauth/google
+ *
+ * Then, set your Google Client ID in <GoogleOAuthProvider clientId="YOUR_CLIENT_ID">
+ * (See placeholder comment below for placement in index.js)
+ */
+import { GoogleOAuthProvider, GoogleLogin, googleLogout } from "@react-oauth/google";
+import jwt_decode from "jwt-decode"; // decode for getting the profile info
+
+
 // Sample images (Unsplash placeholders)
 const recipeImages = [
   "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80", // Avocado Toast
@@ -21,6 +33,34 @@ function RecipeHubContainer() {
   const [search, setSearch] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [theme, setTheme] = useState("light"); // theme: "light" | "dark"
+  const [googleUser, setGoogleUser] = useState(null); // For storing Google profile
+
+  // PUBLIC_INTERFACE
+  /**
+   * Handle successful Google OAuth login.
+   * @param {object} credentialResponse
+   */
+  function handleGoogleLoginSuccess(credentialResponse) {
+    if (credentialResponse && credentialResponse.credential) {
+      const decoded = jwt_decode(credentialResponse.credential);
+      setIsAuthenticated(true);
+      setGoogleUser({
+        name: decoded.name,
+        email: decoded.email,
+        picture: decoded.picture,
+      });
+    }
+  }
+
+  // PUBLIC_INTERFACE
+  /**
+   * Handle Google OAuth logout.
+   */
+  function handleGoogleLogout() {
+    setIsAuthenticated(false);
+    setGoogleUser(null);
+    googleLogout();
+  }
 
   // Demo categories and recipes (to be replaced by API/real data)
   const categories = [
@@ -99,14 +139,58 @@ function RecipeHubContainer() {
               <button className="rh-btn rh-btn-primary" onClick={handleAuth}>
                 Login
               </button>
-              <button className="rh-btn rh-btn-secondary" style={{ marginTop: 8 }}>
+              {/* --- GOOGLE LOGIN BUTTON BELOW --- */}
+              <div style={{ marginTop: 8, marginBottom: 8 }}>
+                {/* 
+                  Replace 'YOUR_GOOGLE_CLIENT_ID_HERE' with your actual client ID below:
+                  Wrap RecipeHubContainer in <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID_HERE"> ... </GoogleOAuthProvider> in index.js.
+                */}
+                <GoogleLogin
+                  onSuccess={handleGoogleLoginSuccess}
+                  onError={() => {
+                    // Google login failed
+                  }}
+                  width="100%"
+                />
+              </div>
+              <button className="rh-btn rh-btn-secondary">
                 Register
               </button>
             </>
           ) : (
-            <button className="rh-btn rh-btn-accent" onClick={handleAuth}>
-              Logout
-            </button>
+            <>
+              {googleUser ? (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    marginBottom: 8,
+                    marginTop: 2,
+                  }}
+                >
+                  <img
+                    src={googleUser.picture}
+                    alt="Profile"
+                    style={{ width: 36, height: 36, borderRadius: "50%" }}
+                  />
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: "1em" }}>{googleUser.name}</div>
+                    <button
+                      className="rh-btn rh-btn-accent rh-btn-sm"
+                      style={{ marginTop: 4 }}
+                      onClick={handleGoogleLogout}
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button className="rh-btn rh-btn-accent" onClick={handleAuth}>
+                  Logout
+                </button>
+              )}
+            </>
           )}
           <button
             className="rh-btn rh-btn-sm rh-btn-theme"
@@ -140,7 +224,24 @@ function RecipeHubContainer() {
           </div>
           <div className="rh-user-placeholder">
             {isAuthenticated ? (
-              <span className="rh-user-auth">👤 User</span>
+              googleUser ? (
+                <span className="rh-user-auth">
+                  <img
+                    src={googleUser.picture}
+                    alt="Profile"
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: "50%",
+                      verticalAlign: "middle",
+                      marginRight: 7,
+                    }}
+                  />
+                  {googleUser.name}
+                </span>
+              ) : (
+                <span className="rh-user-auth">👤 User</span>
+              )
             ) : (
               <span className="rh-user-notauth">Not logged in</span>
             )}
