@@ -10,7 +10,7 @@ import "./RecipeHubContainer.css";
  * (See placeholder comment below for placement in index.js)
  */
 import { GoogleOAuthProvider, GoogleLogin, googleLogout } from "@react-oauth/google";
-import jwt_decode from "jwt-decode"; // decode for getting the profile info
+import { jwtDecode } from "jwt-decode"; // decode for getting the profile info
 
 
 // Sample images (Unsplash placeholders)
@@ -42,7 +42,7 @@ function RecipeHubContainer() {
    */
   function handleGoogleLoginSuccess(credentialResponse) {
     if (credentialResponse && credentialResponse.credential) {
-      const decoded = jwt_decode(credentialResponse.credential);
+      const decoded = jwtDecode(credentialResponse.credential);
       setIsAuthenticated(true);
       setGoogleUser({
         name: decoded.name,
