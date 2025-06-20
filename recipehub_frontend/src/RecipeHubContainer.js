@@ -1,17 +1,26 @@
 import React, { useState } from "react";
 import "./RecipeHubContainer.css";
 
-// PUBLIC_INTERFACE
+// Sample images (Unsplash placeholders)
+const recipeImages = [
+  "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80", // Avocado Toast
+  "https://images.unsplash.com/photo-1506354666786-959d6d497f1a?w=400&q=80", // Spaghetti Bolognese
+  "https://images.unsplash.com/photo-1519864600265-abb244a666d6?w=400&q=80", // Chocolate Cake
+  "https://images.unsplash.com/photo-1502741338009-cac2772e18bc?w=400&q=80", // Lemonade
+  "https://images.unsplash.com/photo-1504674900247-ec1e1fe90f2c?w=400&q=80", // Chicken Caesar Salad
+];
+
+/**
+ * PUBLIC_INTERFACE
+ * Main container for RecipeHub application.
+ * Handles layout, theming, sidebar (categories), main area for browse/search, management, authentication etc.
+ * Now includes theme switching and recipe card images.
+ */
 function RecipeHubContainer() {
-  /**
-   * Main container for RecipeHub application.
-   * Handles layout, theming, sidebar (categories), main area for browse/search, management, authentication etc.
-   * This version provides structure and visual foundation; feature logic is stubbed with placeholders.
-   */
-  // Demo placeholder state
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [theme, setTheme] = useState("light"); // theme: "light" | "dark"
 
   // Demo categories and recipes (to be replaced by API/real data)
   const categories = [
@@ -24,12 +33,13 @@ function RecipeHubContainer() {
     "Drinks",
   ];
 
+  // Add image field to each recipe for demonstration.
   const demoRecipes = [
-    { id: 1, title: "Avocado Toast", category: "Breakfast" },
-    { id: 2, title: "Spaghetti Bolognese", category: "Dinner" },
-    { id: 3, title: "Chocolate Cake", category: "Dessert" },
-    { id: 4, title: "Lemonade", category: "Drinks" },
-    { id: 5, title: "Chicken Caesar Salad", category: "Lunch" },
+    { id: 1, title: "Avocado Toast", category: "Breakfast", image: recipeImages[0] },
+    { id: 2, title: "Spaghetti Bolognese", category: "Dinner", image: recipeImages[1] },
+    { id: 3, title: "Chocolate Cake", category: "Dessert", image: recipeImages[2] },
+    { id: 4, title: "Lemonade", category: "Drinks", image: recipeImages[3] },
+    { id: 5, title: "Chicken Caesar Salad", category: "Lunch", image: recipeImages[4] },
   ];
 
   const filteredRecipes =
@@ -41,13 +51,24 @@ function RecipeHubContainer() {
           .filter((r) => r.category === selectedCategory)
           .filter((r) => r.title.toLowerCase().includes(search.toLowerCase()));
 
-  // Stub login/logout
+  // Handle login/logout (stub)
   function handleAuth() {
     setIsAuthenticated((auth) => !auth);
   }
 
+  // Theme toggle handler
+  function toggleTheme() {
+    setTheme((t) => (t === "light" ? "dark" : "light"));
+  }
+
+  // Change the body class for application-wide theming
+  React.useEffect(() => {
+    document.body.classList.remove("rh-light-theme", "rh-dark-theme");
+    document.body.classList.add(`rh-${theme}-theme`);
+  }, [theme]);
+
   return (
-    <div className="rh-root">
+    <div className={`rh-root rh-theme-${theme}`}>
       <aside className="rh-sidebar">
         <div className="rh-sidebar-header">
           <span className="rh-logo">
@@ -87,6 +108,14 @@ function RecipeHubContainer() {
               Logout
             </button>
           )}
+          <button
+            className="rh-btn rh-btn-sm rh-btn-theme"
+            style={{ marginTop: 16 }}
+            onClick={toggleTheme}
+            aria-label="Toggle dark or light theme"
+          >
+            {theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
+          </button>
         </div>
       </aside>
       <main className="rh-main">
@@ -128,8 +157,16 @@ function RecipeHubContainer() {
             {filteredRecipes.length === 0 && (
               <div className="rh-no-recipes">No recipes found.</div>
             )}
-            {filteredRecipes.map((recipe) => (
+            {filteredRecipes.map((recipe, idx) => (
               <div key={recipe.id} className="rh-recipe-card">
+                <div className="rh-recipe-image-wrap">
+                  <img
+                    className="rh-recipe-image"
+                    src={recipe.image}
+                    alt={recipe.title}
+                    loading="lazy"
+                  />
+                </div>
                 <div className="rh-recipe-title">{recipe.title}</div>
                 <div className="rh-recipe-category">{recipe.category}</div>
                 {isAuthenticated && (
